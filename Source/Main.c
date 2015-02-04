@@ -5,12 +5,9 @@
  *      Author: root
  */
 
-#include <hello.h>
+#include <gui.h>
 #include <bz2lib.h>
-#include "filenameoperations.h"
-
-int count = 1;
-
+#include <fno.h>
 
 int main(int argc, char** argv) {
 
@@ -20,7 +17,6 @@ int main(int argc, char** argv) {
 	GtkWidget *btnSource;
 	GtkWidget *btnOK;
 	GtkWidget *btnCancel;
-	GtkWidget *check;
 
 	argWidgets *widgets = malloc(sizeof(argWidgets));
 
@@ -71,9 +67,9 @@ int main(int argc, char** argv) {
 	gtk_widget_set_sensitive(widgets->tfSource, false);
 
 
-	check = gtk_check_button_new_with_label("Same destination");
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check), false);
-	gtk_fixed_put(GTK_FIXED(frame), check, 110, 117);
+	widgets->check = gtk_check_button_new_with_label("Same destination");
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widgets->check), false);
+	gtk_fixed_put(GTK_FIXED(frame), widgets->check, 110, 117);
 
 	widgets->combo = gtk_combo_box_text_new_with_entry();
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(widgets->combo), "Compress");
@@ -89,7 +85,7 @@ int main(int argc, char** argv) {
 
 	g_signal_connect(widgets->btnDest, "clicked", G_CALLBACK(setDestPath), widgets);
 
-	g_signal_connect(check, "toggled", G_CALLBACK(entry_toggle_visibility), widgets);
+	g_signal_connect(widgets->check, "toggled", G_CALLBACK(entry_toggle_visibility), widgets);
 
 	g_signal_connect(btnOK, "clicked", G_CALLBACK(compressOrDecompress),
 			widgets);
@@ -101,110 +97,4 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-
-void setSourcePath(GtkWidget *widget, argWidgets *Widgets) {
-
-	GtkWidget *dialog = gtk_file_chooser_dialog_new("Choose file", Widgets->window,
-			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
-
-	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-		char *filename;
-
-		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-		gtk_entry_set_text(GTK_ENTRY(Widgets->tfSource), filename);
-		g_free(filename);
-	}
-
-	gtk_widget_destroy(dialog);
-}
-
-void setDestPath(GtkWidget *widget, argWidgets *Widgets) {
-
-	GtkWidget *dialog;
-
-	dialog = gtk_file_chooser_dialog_new("Choose destination", Widgets->window,
-			GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-			NULL);
-
-	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-		char *filename;
-
-		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-		gtk_entry_set_text(GTK_ENTRY(Widgets->tfDestination), filename);
-		g_free(filename);
-	}
-
-	gtk_widget_destroy(dialog);
-}
-
-void entry_toggle_visibility(GtkWidget *checkbutton, argWidgets *Widgets) {
-	count++;
-
-	if (count % 2)
-	{
-		gtk_widget_set_sensitive(Widgets->btnDest, true);
-	}
-	else
-	{
-		gtk_entry_set_text(GTK_ENTRY(Widgets->tfDestination), "");
-		gtk_widget_set_sensitive(Widgets->btnDest, false);
-	}
-}
-
-
-void compressOrDecompress(GtkWindow *widget, argWidgets *Widgets)
-{
-	char *destination;
-	char *source;
-	const char *widgetString = gtk_entry_get_text(GTK_ENTRY(Widgets->tfSource));
-	source = malloc(strlen(widgetString)+1);
-	strcpy(source,widgetString);
-	widgetString = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(Widgets->combo));
-
-	if (!strcmp(widgetString, "Compress"))
-	{
-		widgetString = gtk_entry_get_text(GTK_ENTRY(Widgets->tfDestination));
-		if(!strcmp(widgetString,""))
-		{
-			destination = malloc(strlen(source)+5);
-			strcpy(destination,source);
-			strcat(destination, ".bz2");
-		}
-		else
-		{
-			int destinationLength = strlen(widgetString)+strlen(getFileName(source))+6;		//('\0' ,".bz2",/)
-			destination = malloc(destinationLength);
-			strcpy(destination,widgetString);
-			strcat(destination,"/");
-			strcat(destination,getFileName(source));
-			strcat(destination,".bz2");
-		}
-		compress(source, destination);
-
-	}
-	else if(!strcmp(widgetString, "Decompress"))
-	{
-		widgetString = gtk_entry_get_text(GTK_ENTRY(Widgets->tfDestination));
-		if(!strcmp(widgetString,""))
-		{
-			destination = malloc(strlen(getPath(source))+strlen(removeLastExtension(getFileName(source)))+2);
-			strcpy(destination, getPath(source));
-			strcat(destination,"/");
-			strcat(destination,removeLastExtension(getFileName(source)));
-		}
-		else
-		{
-			destination = malloc(strlen(widgetString)+strlen(removeLastExtension(getFileName(source)))+1);
-			strcpy(destination,widgetString);
-			strcat(destination,"/");
-			strcat(destination, removeLastExtension(getFileName(source)));
-		}
-		decompress(source, destination);
-	}
-
-	free(source);
-	free(destination);
-}
 

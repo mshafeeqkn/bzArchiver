@@ -44,8 +44,8 @@ typedef struct
 }bz_struct;
 
 
-int decompress(gchar *source, gchar *dest) ;
-int compress(gchar *source, gchar *dest);
+int decompress(char *source, char *dest) ;
+int compress(char *source, char *dest);
 int initcompress(bz_stream *stream, bz_struct *bzStruct);
 int compressAndWrite(char *sourceFile, char *destFile,
                         bz_stream *stream, bz_struct *bzStruct);
@@ -57,6 +57,6 @@ int decompressEnd(bz_stream *stream, bz_struct *bzStruct);
 int hasbz2Extention(char *FileName);
 
 
-#include "bzArchiev.c"
+//#include "bzArchiev.c"
 
 #endif
